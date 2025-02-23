@@ -396,14 +396,48 @@
                 );
                 ctx.scale(MAGNIFIER_CONFIG.ZOOM_LEVEL, MAGNIFIER_CONFIG.ZOOM_LEVEL);
 
-                /* 保持原有绘制样式 */
-                ctx.strokeStyle = sketch.style.borderColor;
-                ctx.fillStyle = sketch.style.backgroundColor;
-                ctx.lineWidth = 2;
+                /* 获取计算后的样式 */
+                const computedStyle = window.getComputedStyle(sketch);
+                ctx.strokeStyle = computedStyle.borderColor;
+                ctx.fillStyle = computedStyle.backgroundColor; 
+                ctx.lineWidth = parseInt(computedStyle.borderWidth);
 
                 /* 中心对齐绘制 */
                 ctx.fillRect(-width/(2*scaleX), -height/(2*scaleY), width/scaleX, height/scaleY);
                 ctx.strokeRect(-width/(2*scaleX), -height/(2*scaleY), width/scaleX, height/scaleY);
+
+                /* 绘制边缘高亮 */
+                ctx.save();
+                ctx.strokeStyle = '#6BABF5'; // 高亮颜色
+                ctx.lineWidth = 2;
+
+                // 检查四个边是否需要高亮
+                if(Math.abs(cursorCenterX - rect.left) < 2) {
+                    ctx.beginPath();
+                    ctx.moveTo(-width/(2*scaleX), -height/(2*scaleY));
+                    ctx.lineTo(-width/(2*scaleX), height/(2*scaleY));
+                    ctx.stroke();
+                }
+                if(Math.abs(cursorCenterX - rect.right) < 2) {
+                    ctx.beginPath();
+                    ctx.moveTo(width/(2*scaleX), -height/(2*scaleY));
+                    ctx.lineTo(width/(2*scaleX), height/(2*scaleY));
+                    ctx.stroke();
+                }
+                if(Math.abs(cursorCenterY - rect.top) < 2) {
+                    ctx.beginPath();
+                    ctx.moveTo(-width/(2*scaleX), -height/(2*scaleY));
+                    ctx.lineTo(width/(2*scaleX), -height/(2*scaleY));
+                    ctx.stroke();
+                }
+                if(Math.abs(cursorCenterY - rect.bottom) < 2) {
+                    ctx.beginPath();
+                    ctx.moveTo(-width/(2*scaleX), height/(2*scaleY));
+                    ctx.lineTo(width/(2*scaleX), height/(2*scaleY));
+                    ctx.stroke();
+                }
+                ctx.restore();
+
                 ctx.restore();
             });
         }
