@@ -282,13 +282,14 @@
         var rectangleCount = 0;
         var rectangle;
 
-        /* 放大镜配置常量 */
+        /* 放大镜配置常量优化 */
         const MAGNIFIER_CONFIG = {
-            SIZE: 200,          /*放大镜尺寸*/
-            ZOOM_LEVEL: 2,       /*放大倍数提升到3倍*/
-            EDGE_OFFSET: 40,     /*水平边缘偏移*/
-            VERTICAL_OFFSET: 20, /*垂直边缘偏移*/
-            CURSOR_CENTER_OFFSET: 50 /*光标中心点偏移*/
+            SIZE: 200,          
+            ZOOM_LEVEL: 2,      
+            EDGE_OFFSET: 40,    
+            VERTICAL_OFFSET: 20,
+            CURSOR_CENTER_OFFSET: 50,
+            UPDATE_INTERVAL: 1000/60  // 添加更新间隔时间(60fps)
         };
 
         /* 初始化放大镜（使用防抖优化） */
@@ -304,6 +305,18 @@
             return canvas;
         })();
         const ctx = magnifierCanvas.getContext('2d');
+
+        /* 使用 RequestAnimationFrame 优化放大镜更新 */
+        let rafId;
+        function optimizedUpdateMagnifier(cursorX, cursorY) {
+            if (rafId) {
+                cancelAnimationFrame(rafId);
+            }
+            
+            rafId = requestAnimationFrame(() => {
+                updateMagnifier(cursorX, cursorY);
+            });
+        }
 
         /* 优化后的放大镜更新函数 */
         function updateMagnifier(cursorX, cursorY) {
@@ -477,7 +490,7 @@
                 snackbar.innerHTML = '<p>slide to hover over the face.</p>'; /*Update the snackbar text*/
             }
 
-            updateMagnifier(e.touches[0].clientX, e.touches[0].clientY);
+            optimizedUpdateMagnifier(e.touches[0].clientX, e.touches[0].clientY);
         }, { passive: false });
 
         /*Handle touchend event*/
@@ -636,6 +649,18 @@
      
      /*定期检查重叠状态*/
      setInterval(checkOverlap, 100);
+
+     /* 清理不再使用的变量和事件监听器 */
+     function cleanup() {
+         if (rafId) {
+             cancelAnimationFrame(rafId);
+         }
+         // 清除所有定时器
+         clearTimeout(tapTimeout);
+     }
+
+     // 在页面卸载时清理资源
+     window.addEventListener('unload', cleanup);
 
      </script>       
 </body>
